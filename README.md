@@ -1,62 +1,120 @@
-💡 Project: Data Engineering - Batch Processing Pipeline (DLMDSEDE02 - Task 1)
+# 💡 Project: Data Engineering - Batch Processing Pipeline
 
-This project implements a batch-processing data architecture for analyzing household energy consumption data. It fulfills the requirements for Phase 2 (Development/Reflection) of the IU International University of Applied Sciences Data Engineering course portfolio (DLMDSEDE02).
+# Course: DLMDSEDE02 - Data Engineering (IU International University)
+## Task: Task 1 - Build a batch-processing-based data architecture
+## Phase: Phase 2 - Development & Reflection
 
-🏛️ Architecture Overview
+### 📈 Overview
 
-The system utilizes a microservices architecture, orchestrated locally using Docker Compose. This aligns with the concepts developed in Phase 1 and processes data in scheduled batches.
+This project implements the batch-processing data architecture conceptualized in Phase 1. It demonstrates a complete pipeline for ingesting, processing, and storing household energy consumption data using modern data engineering tools and practices. The system reads raw data, cleans it, aggregates energy consumption quarterly, and stores the results in a PostgreSQL database, ready for potential downstream machine learning applications.
 
-The core components are:
+---
 
-📨 Kafka (confluentinc/cp-kafka:7.5.0): Handles reliable data ingestion. Raw household power consumption data is published to the raw_energy topic.
+### 🏗️ Architecture & Microservices
 
-💾 HDFS (bde2020/hadoop-namenode:2.0.0-hadoop3.1.1-java8): Serves as the conceptual distributed storage layer for raw data. (Note: In this specific implementation, Spark reads directly from Kafka).
+The system follows a microservices architecture, orchestrated locally via Docker Compose to ensure Infrastructure as Code (IaC) principles for reproducibility.
 
-✨ Spark (apache/spark:3.5.1): Performs the core batch processing. It reads JSON data from the Kafka topic, parses/cleans records, aggregates energy consumption quarterly, and writes the final results.
+The core components running in isolated containers are:
 
-📊 PostgreSQL (postgres:latest): Acts as the data serving layer, storing the final aggregated quarterly results in the quarterly_energy_data table for potential downstream ML applications.
+- 📨 Kafka (confluentinc/cp-kafka:7.5.0): Handles reliable, fault-tolerant data ingestion. Raw records are published to the raw_energy topic.
 
-🔗 Zookeeper (confluentinc/cp-zookeeper:latest): Manages Kafka cluster state (required dependency).
+- 🔗 Zookeeper (confluentinc/cp-zookeeper:latest): Manages Kafka cluster state (required dependency).
 
-📋 Requirements
+- 💾 HDFS (bde2020/hadoop-namenode:2.0.0-hadoop3.1.1-java8): Represents the conceptual distributed raw data storage layer. (Note: Data is read directly from Kafka in this specific processing script).
 
-To run this project, you will need:
+- ✨ Spark (apache/spark:3.5.1): Executes the core batch processing logic. Reads from Kafka, performs transformations (cleaning, type casting, date parsing), aggregates data quarterly, and writes results.
 
-🐳 Docker & Docker Compose: For running the containerized services.
+- 📊 PostgreSQL (postgres:latest): Serves as the data delivery layer, storing the final aggregated quarterly results (quarterly_energy_data table).
 
-🐙 Git: For version control and cloning the repository.
+---
 
-📄 Dataset: The "Individual household electric power consumption Data Set" from the UCI Machine Learning Repository. Download the .zip file, extract it, and place the household_power_consumption.txt file in the data/ directory of this project.
+### 🛠️ Technologies Used
 
-🚀 How to Run the Pipeline
+- Orchestration: Docker & Docker Compose
 
-Follow these steps precisely to set up the environment and execute the data pipeline:
+- Ingestion: Apache Kafka
 
-Clone the Repository:
+- Processing: Apache Spark (using PySpark API)
+
+- Storage (Conceptual): HDFS
+
+- Storage (Final Aggregates): PostgreSQL
+
+- Languages: Python 3.8+ (for Spark scripts)
+
+- Key Python Libraries: pyspark, pandas (for ingestion), kafka-python (for ingestion)
+
+---
+
+### Version Control: Git & GitHub
+
+---
+
+### ⚙️ Core Workflow
+
+#### Data Ingestion:
+
+- The ingest_to_kafka.py script reads the raw .txt data using pandas.
+
+- Each row is converted to JSON format.
+
+- Messages are published to the raw_energy Kafka topic.
+
+#### Batch Processing:
+
+The process_with_spark.py script reads the JSON messages from Kafka using Spark Structured Streaming's batch mode (read).
+
+#### Data Cleaning & Transformation:
+
+- Spark parses the JSON payload.
+
+- Data types are cast appropriately (e.g., numerics, timestamps).
+
+- Missing values (?) are handled (filtered out in this implementation).
+
+- Timestamp information is used to derive the calendar quarter.
+
+#### Quarterly Aggregation:
+
+- The cleaned data is grouped by the derived quarter.
+
+- The total energy consumption (Global_active_power converted to Watt-hours) and the count of records are calculated for each quarter.
+
+#### Data Loading:
+
+The final aggregated Spark DataFrame is written via JDBC to the quarterly_energy_data table in PostgreSQL.
+
+---
+
+## 🚀 How to Run the Project
+
+Follow these steps precisely in your terminal from the project's root directory:
+
+- **Clone the Repository:**
 
 git clone [https://github.com/Nikita-DS02/Data-engineering-batch-pipeline.git](https://github.com/Nikita-DS02/Data-engineering-batch-pipeline.git)
 cd Data-engineering-batch-pipeline
 
 
-Place Data:
-Ensure the household_power_consumption.txt dataset file is located inside the data/ directory within the cloned project folder.
+- **Place Data:**
+Download the dataset ("Individual household electric power consumption") from the UCI Repository. Extract it and place the household_power_consumption.txt file inside the data/ directory.
 
-Build and Start Services:
-From the project root directory, launch all services using Docker Compose:
+- **Build and Start Services:**
+- **Launch the entire architecture using Docker Compose:**
 
 docker-compose up -d
 
 
-Wait about a minute for all containers (Kafka, Zookeeper, HDFS, Postgres, Spark) to initialize. Verify they are running using docker ps.
+Wait ~1 minute for services to initialize. Verify all 5 containers are Up using docker ps.
 
-Install Python Dependencies:
-Install the required Python libraries (pandas, kafka-python) inside the running Spark container:
+- **Install Python Dependencies:**
+- **Install necessary libraries within the Spark container:**
 
 docker exec --user root -it data-engineering-batch-pipeline-spark-1 pip install pandas kafka-python
 
 
-Run Ingestion Script:
-Submit the Python script (ingest_to_kafka.py) using spark-submit. This reads the raw .txt file and publishes each record as a JSON message to the Kafka raw_energy topic:
+- **Run Ingestion Script:**
+Execute the data ingestion job via spark-submit:
 
 docker exec --user root -it data-engineering-batch-pipeline-spark-1 /opt/spark/bin/spark-submit \
   --master 'local[*]' \
@@ -64,10 +122,10 @@ docker exec --user root -it data-engineering-batch-pipeline-spark-1 /opt/spark/b
   /opt/spark/scripts/ingest_to_kafka.py
 
 
-(Note: This step processes ~2 million records and will take several minutes to complete).
+(Note: This step processes ~2 million records and will take several minutes).
 
-Run Processing Script:
-Submit the main Spark processing script (process_with_spark.py). This reads the JSON messages from Kafka, performs cleaning, aggregates data quarterly, and writes the final results to PostgreSQL:
+- **Run Processing Script:**
+Execute the data processing and aggregation job via spark-submit:
 
 docker exec --user root -it data-engineering-batch-pipeline-spark-1 /opt/spark/bin/spark-submit \
   --master 'local[*]' \
@@ -77,24 +135,24 @@ docker exec --user root -it data-engineering-batch-pipeline-spark-1 /opt/spark/b
   /opt/spark/scripts/process_with_spark.py
 
 
-Verify Results in PostgreSQL:
-Connect to the PostgreSQL container using psql and query the final table:
+- **Verify Results in PostgreSQL:**
+Connect to the database using psql:
 
 docker exec -it data-engineering-batch-pipeline-postgres-1 psql -U postgres -d energy_db
 
 
-Inside the psql shell (prompt energy_db=#), run:
-
+- **Inside the psql shell (prompt energy_db=#), query the results table:**
+     ```bash
 SELECT * FROM quarterly_energy_data ORDER BY quarter;
 \q
 
 
-You should see the aggregated data listed per quarter.
+You should see the aggregated quarterly data.
 
-✨ Reproducibility
+---
 
-This project emphasizes reproducibility, a key data engineering principle:
+### ✨ Reproducibility & Version Control
 
-Infrastructure as Code (IaC): The docker-compose.yml file defines the entire multi-container environment, ensuring consistent setup across different machines.
+Infrastructure as Code (IaC): The docker-compose.yml file ensures a consistent and reproducible multi-container environment setup.
 
-Version Control: All source code, configuration files, and documentation are tracked using Git, enabling collaboration and history tracking.
+Version Control: Git is used to track all code, configuration, and documentation changes. The .gitignore file correctly excludes the large raw data file and system-specific files (.DS_Store, .zshrc), following best practices for repository management.
