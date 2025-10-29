@@ -102,7 +102,7 @@ Download the dataset ("Individual household electric power consumption") from th
 #### Build and Start Services
 ##### Launch the entire architecture using Docker Compose:
 
-docker-compose up -d
+    docker-compose up -d
 
 
 Wait ~1 minute for services to initialize. Verify all 5 containers are Up using docker ps.
@@ -114,7 +114,7 @@ Wait ~1 minute for services to initialize. Verify all 5 containers are Up using 
 
 
 #### Run Ingestion Script:
-    Execute the data ingestion job via spark-submit:
+Execute the data ingestion job via spark-submit:
 
     docker exec --user root -it data-engineering-batch-pipeline-spark-1 /opt/spark/bin/spark-submit \
     --master 'local[*]' \
@@ -122,10 +122,10 @@ Wait ~1 minute for services to initialize. Verify all 5 containers are Up using 
     /opt/spark/scripts/ingest_to_kafka.py
 
 
-    (Note: This step processes ~2 million records and will take several minutes).
+(Note: This step processes ~2 million records and will take several minutes).
 
 ### Run Processing Script:
-    Execute the data processing and aggregation job via spark-submit:
+Execute the data processing and aggregation job via spark-submit:
 
     docker exec --user root -it data-engineering-batch-pipeline-spark-1 /opt/spark/bin/spark-submit \
     --master 'local[*]' \
@@ -137,7 +137,7 @@ Wait ~1 minute for services to initialize. Verify all 5 containers are Up using 
 
 ### Verify Results in PostgreSQL:
 
-    Connect to the database using psql:
+Connect to the database using psql:
 
     docker exec -it data-engineering-batch-pipeline-postgres-1 psql -U postgres -d energy_db
 
