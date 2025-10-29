@@ -143,8 +143,8 @@ Wait ~1 minute for services to initialize. Verify all 5 containers are Up using 
 
 
 ### Inside the psql shell (prompt energy_db=#), query the results table:
-SELECT * FROM quarterly_energy_data ORDER BY quarter;
-\q
+    SELECT * FROM quarterly_energy_data ORDER BY quarter;
+    \q
 
 
 You should see the aggregated quarterly data.
