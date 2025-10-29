@@ -1,8 +1,8 @@
 # 💡 Project: Data Engineering - Batch Processing Pipeline
 
 # Course: DLMDSEDE02 - Data Engineering (IU International University)
-## Task: Task 1 - Build a batch-processing-based data architecture
-## Phase: Phase 2 - Development & Reflection
+## Task 1 - Build a batch-processing-based data architecture
+## Phase 2 - Development & Reflection
 
 ### 📈 Overview
 
@@ -92,67 +92,67 @@ Follow these steps precisely in your terminal from the project's root directory:
 
 - **Clone the Repository:**
 
-git clone [https://github.com/Nikita-DS02/Data-engineering-batch-pipeline.git](https://github.com/Nikita-DS02/Data-engineering-batch-pipeline.git)
-cd Data-engineering-batch-pipeline
+    git clone [https://github.com/Nikita-DS02/Data-engineering-batch-pipeline.git](https://github.com/Nikita-DS02/Data-engineering-batch-pipeline.git)
+    cd Data-engineering-batch-pipeline
 
 
 - **Place Data:**
-Download the dataset ("Individual household electric power consumption") from the UCI Repository. Extract it and place the household_power_consumption.txt file inside the data/ directory.
+ Download the dataset ("Individual household electric power consumption") from the UCI Repository. Extract it and place the household_power_consumption.txt file inside the data/ directory.
 
 - **Build and Start Services:**
 - **Launch the entire architecture using Docker Compose:**
 
-docker-compose up -d
+    docker-compose up -d
 
 
-Wait ~1 minute for services to initialize. Verify all 5 containers are Up using docker ps.
+    Wait ~1 minute for services to initialize. Verify all 5 containers are Up using docker ps.
 
 - **Install Python Dependencies:**
 - **Install necessary libraries within the Spark container:**
 
-docker exec --user root -it data-engineering-batch-pipeline-spark-1 pip install pandas kafka-python
+    docker exec --user root -it data-engineering-batch-pipeline-spark-1 pip install pandas kafka-python
 
 
 - **Run Ingestion Script:**
-Execute the data ingestion job via spark-submit:
+    Execute the data ingestion job via spark-submit:
 
-docker exec --user root -it data-engineering-batch-pipeline-spark-1 /opt/spark/bin/spark-submit \
-  --master 'local[*]' \
-  --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 \
-  /opt/spark/scripts/ingest_to_kafka.py
+    docker exec --user root -it data-engineering-batch-pipeline-spark-1 /opt/spark/bin/spark-submit \
+    --master 'local[*]' \
+    --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 \
+    /opt/spark/scripts/ingest_to_kafka.py
 
 
-(Note: This step processes ~2 million records and will take several minutes).
+    (Note: This step processes ~2 million records and will take several minutes).
 
 - **Run Processing Script:**
-Execute the data processing and aggregation job via spark-submit:
+    Execute the data processing and aggregation job via spark-submit:
 
-docker exec --user root -it data-engineering-batch-pipeline-spark-1 /opt/spark/bin/spark-submit \
-  --master 'local[*]' \
-  --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 \
-  --driver-class-path /opt/spark/scripts/postgresql.jar \
-  --jars /opt/spark/scripts/postgresql.jar \
-  /opt/spark/scripts/process_with_spark.py
+    docker exec --user root -it data-engineering-batch-pipeline-spark-1 /opt/spark/bin/spark-submit \
+    --master 'local[*]' \
+    --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 \
+    --driver-class-path /opt/spark/scripts/postgresql.jar \
+    --jars /opt/spark/scripts/postgresql.jar \
+    /opt/spark/scripts/process_with_spark.py
 
 
 - **Verify Results in PostgreSQL:**
-Connect to the database using psql:
+    Connect to the database using psql:
 
-docker exec -it data-engineering-batch-pipeline-postgres-1 psql -U postgres -d energy_db
+    docker exec -it data-engineering-batch-pipeline-postgres-1 psql -U postgres -d energy_db
 
 
 - **Inside the psql shell (prompt energy_db=#), query the results table:**
      ```bash
-SELECT * FROM quarterly_energy_data ORDER BY quarter;
-\q
+     SELECT * FROM quarterly_energy_data ORDER BY quarter;
+    \q
 
 
-You should see the aggregated quarterly data.
+    You should see the aggregated quarterly data.
 
 ---
 
 ### ✨ Reproducibility & Version Control
 
-Infrastructure as Code (IaC): The docker-compose.yml file ensures a consistent and reproducible multi-container environment setup.
+- Infrastructure as Code (IaC): The docker-compose.yml file ensures a consistent and reproducible multi-container environment setup.
 
-Version Control: Git is used to track all code, configuration, and documentation changes. The .gitignore file correctly excludes the large raw data file and system-specific files (.DS_Store, .zshrc), following best practices for repository management.
+- Version Control: Git is used to track all code, configuration, and documentation changes. The .gitignore file correctly excludes the large raw data file and system-specific files (.DS_Store, .zshrc), following best practices for repository management.
