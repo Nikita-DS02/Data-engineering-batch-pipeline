@@ -30,19 +30,19 @@ The core components running in isolated containers are:
 
 ### 🛠️ Technologies Used
 
-- Orchestration: Docker & Docker Compose
+- **Orchestration**: Docker & Docker Compose
 
-- Ingestion: Apache Kafka
+- **Ingestion**: Apache Kafka
 
-- Processing: Apache Spark (using PySpark API)
+- **Processing**: Apache Spark (using PySpark API)
 
-- Storage (Conceptual): HDFS
+- **Storage (Conceptual)**: HDFS
 
-- Storage (Final Aggregates): PostgreSQL
+- **Storage (Final Aggregates)**: PostgreSQL
 
-- Languages: Python 3.8+ (for Spark scripts)
+- **Languages**: Python 3.8+ (for Spark scripts)
 
-- Key Python Libraries: pyspark, pandas (for ingestion), kafka-python (for ingestion)
+- **Key Python Libraries**: pyspark, pandas (for ingestion), kafka-python (for ingestion)
 
 ---
 
@@ -90,30 +90,30 @@ The final aggregated Spark DataFrame is written via JDBC to the quarterly_energy
 
 Follow these steps precisely in your terminal from the project's root directory:
 
-- **Clone the Repository:**
+#### Clone the Repository:
 
-    git clone [https://github.com/Nikita-DS02/Data-engineering-batch-pipeline.git](https://github.com/Nikita-DS02/Data-engineering-batch-pipeline.git)
-    cd Data-engineering-batch-pipeline
-
-
-- **Place Data:**
- Download the dataset ("Individual household electric power consumption") from the UCI Repository. Extract it and place the household_power_consumption.txt file inside the data/ directory.
-
-- **Build and Start Services:**
-- **Launch the entire architecture using Docker Compose:**
-
-    docker-compose up -d
+git clone [https://github.com/Nikita-DS02/Data-engineering-batch-pipeline.git](https://github.com/Nikita-DS02/Data-engineering-batch-pipeline.git)
+cd Data-engineering-batch-pipeline
 
 
-    Wait ~1 minute for services to initialize. Verify all 5 containers are Up using docker ps.
+#### Place Data:
+Download the dataset ("Individual household electric power consumption") from the UCI Repository. Extract it and place the household_power_consumption.txt file inside the data/ directory.
 
-- **Install Python Dependencies:**
-- **Install necessary libraries within the Spark container:**
+#### Build and Start Services
+##### Launch the entire architecture using Docker Compose:
+
+docker-compose up -d
+
+
+Wait ~1 minute for services to initialize. Verify all 5 containers are Up using docker ps.
+
+#### Install Python Dependencies
+##### Install necessary libraries within the Spark container:
 
     docker exec --user root -it data-engineering-batch-pipeline-spark-1 pip install pandas kafka-python
 
 
-- **Run Ingestion Script:**
+#### Run Ingestion Script:
     Execute the data ingestion job via spark-submit:
 
     docker exec --user root -it data-engineering-batch-pipeline-spark-1 /opt/spark/bin/spark-submit \
@@ -124,7 +124,7 @@ Follow these steps precisely in your terminal from the project's root directory:
 
     (Note: This step processes ~2 million records and will take several minutes).
 
-- **Run Processing Script:**
+### Run Processing Script:
     Execute the data processing and aggregation job via spark-submit:
 
     docker exec --user root -it data-engineering-batch-pipeline-spark-1 /opt/spark/bin/spark-submit \
@@ -135,19 +135,19 @@ Follow these steps precisely in your terminal from the project's root directory:
     /opt/spark/scripts/process_with_spark.py
 
 
-- **Verify Results in PostgreSQL:**
+### Verify Results in PostgreSQL:
+
     Connect to the database using psql:
 
     docker exec -it data-engineering-batch-pipeline-postgres-1 psql -U postgres -d energy_db
 
 
-- **Inside the psql shell (prompt energy_db=#), query the results table:**
-     ```bash
-     SELECT * FROM quarterly_energy_data ORDER BY quarter;
-    \q
+### Inside the psql shell (prompt energy_db=#), query the results table:
+SELECT * FROM quarterly_energy_data ORDER BY quarter;
+\q
 
 
-    You should see the aggregated quarterly data.
+You should see the aggregated quarterly data.
 
 ---
 
