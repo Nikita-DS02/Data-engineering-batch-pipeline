@@ -1,0 +1,80 @@
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    platform: linux/amd64
+    ports:
+      - "2181:2181"
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+      - ZOOKEEPER_TICK_TIME=2000
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    platform: linux/amd64
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_BROKER_ID=1
+      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+    depends_on:
+      - zookeeper
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+
+  hdfs:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.1.1-java8
+    platform: linux/amd64
+    ports:
+      - "9870:9870"
+      - "9000:9000"
+    environment:
+      - CLUSTER_NAME=test
+      - HADOOP_HOME=/opt/hadoop-3.1.1
+      - fs.defaultFS=hdfs://localhost:9000
+    volumes:
+      - hdfs-data:/hadoop/dfs/name
+
+  postgres:
+    image: postgres:latest
+    platform: linux/amd64
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=example
+      - POSTGRES_DB=energy_db
+    volumes:
+      - postgres-data:/var/lib/postgresql
+
+  spark:
+      image: apache/spark:3.5.1
+      platform: linux/amd64
+      ports:
+        - "8080:8080"
+      environment:
+        - SPARK_MASTER_HOST=spark
+        - SPARK_MASTER_PORT=7077
+        - SPARK_LOCAL_IP=spark
+      volumes:
+        - ./scripts:/opt/spark/scripts:ro  # <-- ADDED: Access your .py scripts
+        - ./data:/opt/spark/data:ro      # <-- ADDED: Access your data file
+        - spark-data:/opt/spark-data     # <-- KEPT: Your original volume
+      depends_on:                          # <-- ADDED: For startup order
+        - kafka
+        - hdfs
+        - postgres
+      command: ["sleep", "infinity"]
+
+volumes:
+  zookeeper-data:
+  kafka-data:
+  hdfs-data:
+  postgres-data:
+  spark-data:
